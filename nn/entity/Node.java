@@ -3,9 +3,9 @@ package com.ml.nn.entity;
 public class Node {
 	
 	public int index;
-	public int level; //2
-	public int item; //1
-	public String label; //N(2, 1)
+	public int level;
+	public int item;
+	public String label;
 	public String layerName;
 	public double value;
 	public double smallDelta;
