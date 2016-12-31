@@ -2,7 +2,7 @@
 
 This project provides neural networks learning based on back propagation algorithm. 
 
-Basically, a neural network system consists of nodes and weights. Nodes and weights are created as classes. Weight classes store how related between nodes. Some network attributes as defined in main program such as hidden layer size and how many nodes exist in hidden layer. Initially, weight values are randomly set. 
+Basically, a neural network system consists of nodes and weights. Nodes and weights are created as classes. Weight classes store how related between nodes. Some network attributes are defined in main program such as hidden layer size and how many nodes exist in hidden layer. 
 
 Back propagation algorithm is applied to calculate node errors based on assigned weigts. This requires to apply forward propation first. After than, stockastic gradient descent is applied to update weights. Also, cost is calculated for each back propagation iteration.
 
