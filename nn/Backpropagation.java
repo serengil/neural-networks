@@ -29,7 +29,7 @@ public class Backpropagation {
 		String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\sine.txt";
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
-		double bias = 1, learningRate = 0.3;
+		double bias = 1, learningRate = 0.3, momentum = 0;
 		int epoch = 1000;
 		
 		//------------------------------------------------
@@ -49,7 +49,7 @@ public class Backpropagation {
 		for(int i=0;i<epoch;i++){
 			
 			//apply back propagation
-			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, learningRate, bias, false);		
+			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, learningRate, momentum, bias, false);		
 			nodes = backProp.getNodes();
 			weights = backProp.getWeights();
 			
@@ -360,7 +360,7 @@ public class Backpropagation {
 		
 	}
 	
-	public static BackProp applyBackPropagation(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, double learningRate, double bias, boolean dump){
+	public static BackProp applyBackPropagation(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, double learningRate, double momentum, double bias, boolean dump){
 		
 		//this block includes forward propagation, back propagation and stockastic gradient descent
 		
@@ -430,6 +430,8 @@ public class Backpropagation {
 
 			//apply stockastic gradient descent to update weights
 			
+			double previousDerivative = 0;
+			
 			for(int j=0;j<weights.size();j++){
 				
 				double weightFromNodeValue = 0, weightToNodeDelta = 0, weightToNodeValue = 0;
@@ -462,7 +464,9 @@ public class Backpropagation {
 				}
 				
 				double derivative = weightFromNodeValue * d;
-				weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative);
+				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative);
+				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) );
+				previousDerivative = derivative * 1;
 				
 			}
 			
