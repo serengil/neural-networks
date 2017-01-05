@@ -74,7 +74,7 @@ public class Backpropagation {
 		}
 		
 		//display predictions on dataset
-		System.out.println("\nfinal outputs...");
+		System.out.println("\nfinal outputs...\nactual\tpredict");
 		for(int i=0;i<historicalData.size();i++){
 			
 			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, bias, false);
@@ -87,9 +87,9 @@ public class Backpropagation {
 			
 			if(dump)
 				System.out.println(
-							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min)
+							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min) //actual
 							+"\t"
-							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min)
+							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min) //predict
 						);			
 			
 		}		
