@@ -1,5 +1,7 @@
 package com.ml.nn;
 
+import java.math.BigDecimal;
+
 /**
  * @author Sefik Ilkin Serengil
  * 
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.ml.nn.entity.Attribute;
 import com.ml.nn.entity.BackProp;
 import com.ml.nn.entity.CostEntity;
 import com.ml.nn.entity.HistoricalItem;
@@ -24,12 +27,13 @@ public class Backpropagation {
 		//variable definition
 		
 		int[] hiddenNodes = {3}; //a hidden layer consisting of 3 nodes. 
-		//to create a network consisting of multiple hidden layers define the variable as {3, 3}. this usage means 2 hidden layers consisting of 3 nodes for each layer
+		//to create a network consisting of multiple hidden layers define the variable as {3, 3}. 
+		//this usage means 2 hidden layers consisting of 3 nodes for each layer
 		
 		String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\sine.txt";
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
-		double bias = 1, learningRate = 0.3, momentum = 0;
+		double bias = 1, learningRate = 0.1, momentum = 0;
 		int epoch = 1000;
 		
 		//------------------------------------------------
@@ -38,12 +42,17 @@ public class Backpropagation {
 		List<HistoricalItem> historicalData = HistoricalData.retrieveHistoricalData(historicalDataPath);
 		int numberOfInputs = historicalData.get(0).getAttributes().size() - 1; //final item is output, the others are attributes
 		
+		//normalize inputs
+		List<HistoricalItem> attributeBoundaries = findAttributeBoundaries(historicalData);
+		historicalData = normalizeAttributes(historicalData, attributeBoundaries);
+		
 		//node creation
 		List<Node> nodes = createNodes(numberOfInputs, hiddenNodes, dump);
 		
 		//weight creation
 		List<Weight> weights = createWeights(nodes, numberOfInputs, hiddenNodes, dump); 
 		
+		//store cost after each gradient descent iteration
 		List<CostEntity> costs = new ArrayList<CostEntity>();
 		
 		for(int i=0;i<epoch;i++){
@@ -57,7 +66,7 @@ public class Backpropagation {
 			double J = calculateCost(historicalData, nodes, weights, bias, false);
 			CostEntity cost = new CostEntity();
 			cost.setCost(J);
-			costs.add(cost);			
+			costs.add(cost);
 			
 		}
 		
@@ -69,13 +78,28 @@ public class Backpropagation {
 			
 		}
 		
+		//display predictions on dataset
 		System.out.println("\nfinal outputs...");
 		for(int i=0;i<historicalData.size();i++){
 			
-			applyForwardPropagation(historicalData.get(i), nodes, weights, bias, dump);
+			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, bias, false);
 			
-		}
+			//display normalized prediction and actual values
+			//System.out.println(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue()+"\t"+currentNodes.get(currentNodes.size()-1).getValue());
+			
+			double min = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(0).getValue();
+			double max = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(1).getValue();
+			
+			if(dump)
+				System.out.println(
+							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min)
+							+"\t"
+							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min)
+						);			
+			
+		}		
 		
+		System.out.println("final cost: "+new BigDecimal(costs.get(costs.size()-1).getCost()));
 		
 	}
 	
@@ -335,7 +359,8 @@ public class Backpropagation {
 					
 				}
 				
-				if(j != nodes.size() -1){ //activation function will not be applied on output node
+				if(true){
+				//if(j != nodes.size() -1){ //activation function will not be applied on output node in some examples we'll always apply
 					netoutput = activationFunction(netinput);
 				}
 				else{
@@ -349,10 +374,10 @@ public class Backpropagation {
 		}
 		
 		if(dump){
-			System.out.println("actual: "+instance.getAttributes().get(instance.getAttributes().size()-1).getValue()
-				+"\tpredict: "+nodes.get(nodes.size()-1).getValue());
+			/*System.out.println("actual: "+instance.getAttributes().get(instance.getAttributes().size()-1).getValue()
+				+"\tpredict: "+nodes.get(nodes.size()-1).getValue());*/
 			
-			//System.out.println(instance.getAttributes().get(instance.getAttributes().size()-1).getValue()+"\t"+nodes.get(nodes.size()-1).getValue());
+			System.out.println(instance.getAttributes().get(instance.getAttributes().size()-1).getValue()+"\t"+nodes.get(nodes.size()-1).getValue());
 					
 		}
 		
@@ -479,6 +504,87 @@ public class Backpropagation {
 		backProp.setWeights(weights);
 		
 		return backProp;
+		
+	}
+	
+	public static List<HistoricalItem> findAttributeBoundaries(List<HistoricalItem> historicalData){
+		
+		List<HistoricalItem> datasetMinMax = new ArrayList<HistoricalItem>();
+		
+		for(int k=0;k<historicalData.get(0).getAttributes().size();k++){
+			
+			HistoricalItem attributeMinMax = new HistoricalItem();
+			List<Attribute> minMaxInstance = new ArrayList<Attribute>();
+			
+			double maxItem = -10000, minItem = 10000;
+			
+			//find max and min elements
+			for(int i=0;i<historicalData.size();i++){
+				
+				double output = historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue();
+				
+				if(output < minItem){
+					
+					minItem = output;
+					
+				}
+				
+				if(output > maxItem){
+					
+					maxItem = output;
+					
+				}
+				
+			}
+			
+			Attribute minValue = new Attribute();
+			minValue.setKey("min");
+			minValue.setValue(minItem);
+			minMaxInstance.add(minValue);
+			
+			Attribute maxValue = new Attribute();
+			maxValue.setKey("max");
+			maxValue.setValue(maxItem);
+			minMaxInstance.add(maxValue);
+			
+			attributeMinMax.setAttributes(minMaxInstance);
+			
+			datasetMinMax.add(attributeMinMax);
+			
+		}
+		
+		return datasetMinMax;
+		
+	}
+	
+	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax){
+		
+		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale
+		//min max values for all attributes are calculated in findAttributeBoundaries method
+		
+		for(int i=0;i<historicalData.size();i++){
+			
+			for(int j=0;j<historicalData.get(i).getAttributes().size();j++){
+				
+				double value = historicalData.get(i).getAttributes().get(j).getValue();
+				double minItem = datasetMinMax.get(j).getAttributes().get(0).getValue();
+				double maxItem = datasetMinMax.get(j).getAttributes().get(1).getValue();
+				
+				double normalizeValue = (value - minItem) / (maxItem - minItem);
+				
+				historicalData.get(i).getAttributes().get(j).setValue(normalizeValue);
+				
+			}
+			
+		}
+		
+		return historicalData;
+		
+	}
+	
+	public static double denormalizeAttribute(double normalizedValue, double max, double min){
+		
+		return (normalizedValue * (max - min)) + min;
 		
 	}
 	
