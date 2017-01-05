@@ -50,7 +50,6 @@ public class Backpropagation {
 		List<Weight> weights = createWeights(nodes, numberOfInputs, hiddenNodes, dump); 
 		
 		//store cost after each gradient descent iteration
-		//List<CostEntity> costs = new ArrayList<CostEntity>();
 		List<Double> costs = new ArrayList<Double>();
 		
 		for(int i=0;i<epoch;i++){
