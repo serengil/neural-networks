@@ -1,7 +1,5 @@
 package com.ml.nn;
 
-import java.math.BigDecimal;
-
 /**
  * @author Sefik Ilkin Serengil
  * 
@@ -10,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
+import java.math.BigDecimal;
 import com.ml.nn.entity.Attribute;
 import com.ml.nn.entity.BackProp;
 import com.ml.nn.entity.CostEntity;
@@ -560,7 +558,9 @@ public class Backpropagation {
 	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax){
 		
 		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale
+		//please look at the graphic of sigmoid function 
 		//min max values for all attributes are calculated in findAttributeBoundaries method
+		//also, inputs should be normalized between [-5, +5] but we still normalize inputs between [0, 1]
 		
 		for(int i=0;i<historicalData.size();i++){
 			
