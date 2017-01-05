@@ -11,7 +11,6 @@ import java.util.Random;
 import java.math.BigDecimal;
 import com.ml.nn.entity.Attribute;
 import com.ml.nn.entity.BackProp;
-import com.ml.nn.entity.CostEntity;
 import com.ml.nn.entity.HistoricalItem;
 import com.ml.nn.entity.Node;
 import com.ml.nn.entity.Weight;
@@ -51,7 +50,8 @@ public class Backpropagation {
 		List<Weight> weights = createWeights(nodes, numberOfInputs, hiddenNodes, dump); 
 		
 		//store cost after each gradient descent iteration
-		List<CostEntity> costs = new ArrayList<CostEntity>();
+		//List<CostEntity> costs = new ArrayList<CostEntity>();
+		List<Double> costs = new ArrayList<Double>();
 		
 		for(int i=0;i<epoch;i++){
 			
@@ -62,9 +62,7 @@ public class Backpropagation {
 			
 			//calculate cost
 			double J = calculateCost(historicalData, nodes, weights, bias, false);
-			CostEntity cost = new CostEntity();
-			cost.setCost(J);
-			costs.add(cost);
+			costs.add(J);
 			
 		}
 		
@@ -72,7 +70,7 @@ public class Backpropagation {
 		System.out.println("\ncosts after a gradient descent iteration...");
 		for(int i=0;i<costs.size();i++){
 			
-			System.out.println(costs.get(i).getCost());
+			System.out.println(costs.get(i));
 			
 		}
 		
@@ -97,7 +95,7 @@ public class Backpropagation {
 			
 		}		
 		
-		System.out.println("final cost: "+new BigDecimal(costs.get(costs.size()-1).getCost()));
+		System.out.println("final cost: "+new BigDecimal(costs.get(costs.size()-1)));
 		
 	}
 	
