@@ -52,8 +52,7 @@ public class Backpropagation {
 		//store cost after each gradient descent iteration
 		List<Double> costs = new ArrayList<Double>();
 		
-		for(int i=0;i<epoch;i++){
-			
+		for(int i=0;i<epoch;i++){			
 			//apply back propagation
 			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, learningRate, momentum, bias, false);		
 			nodes = backProp.getNodes();
@@ -62,14 +61,14 @@ public class Backpropagation {
 			//calculate cost
 			double J = calculateCost(historicalData, nodes, weights, bias, false);
 			costs.add(J);
-			
+						
 		}
 		
 		//display costs for each iteration
 		System.out.println("\ncosts after a gradient descent iteration...");
 		for(int i=0;i<costs.size();i++){
 			
-			System.out.println(costs.get(i));
+			System.out.println(new BigDecimal(costs.get(i)));
 			
 		}
 		
@@ -85,11 +84,14 @@ public class Backpropagation {
 			double min = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(0).getValue();
 			double max = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(1).getValue();
 			
+			double normalizedMin = 0, normalizedMax = 1; //outputs normalized in scale [0, 1]. 
+			//inputs normalized in scale [-4,+4] but only output predictions will be displayed in following line
+			
 			if(dump)
 				System.out.println(
-							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min) //actual
+							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min, normalizedMax, normalizedMin) //actual
 							+"\t"
-							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min) //predict
+							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min, normalizedMax, normalizedMin) //predict
 						);			
 			
 		}		
@@ -554,20 +556,32 @@ public class Backpropagation {
 	
 	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax){
 		
-		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale
-		//please look at the graphic of sigmoid function 
 		//min max values for all attributes are calculated in findAttributeBoundaries method
-		//also, inputs should be normalized between [-5, +5] but we still normalize inputs between [0, 1]
+		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
+		//also, inputs should be normalized between [-4, +4] (x-axis of sigmoid graph)
+		//please look at the graphic of sigmoid function 
 		
 		for(int i=0;i<historicalData.size();i++){
 			
 			for(int j=0;j<historicalData.get(i).getAttributes().size();j++){
 				
+				double newMin, newMax;
+				
+				if(j == historicalData.get(i).getAttributes().size() - 1){ //output item, normalize in scale [0, 1]
+					newMin = 0;
+					newMax = 1;
+				}
+				else{ //input variable, normalize in scale [-4,+4]
+					newMin = -4;
+					newMax = 4;
+				}
+				
 				double value = historicalData.get(i).getAttributes().get(j).getValue();
 				double minItem = datasetMinMax.get(j).getAttributes().get(0).getValue();
 				double maxItem = datasetMinMax.get(j).getAttributes().get(1).getValue();
 				
-				double normalizeValue = (value - minItem) / (maxItem - minItem);
+				//double normalizeValue = (value - minItem) / (maxItem - minItem); //this line normalizes in scale [0, 1]
+				double normalizeValue = ((newMax - newMin)*((value - minItem) / (maxItem - minItem))) + newMin; //this line normalizes in scale [newMin, newMax]
 				
 				historicalData.get(i).getAttributes().get(j).setValue(normalizeValue);
 				
@@ -579,9 +593,10 @@ public class Backpropagation {
 		
 	}
 	
-	public static double denormalizeAttribute(double normalizedValue, double max, double min){
+	public static double denormalizeAttribute(double normalizedValue, double max, double min, double normalizedMax, double normalizedMin){
 		
-		return (normalizedValue * (max - min)) + min;
+		//return (normalizedValue * (max - min)) + min;
+		return ((normalizedValue - normalizedMin) / (normalizedMax - normalizedMin)) * (max - min);
 		
 	}
 	
