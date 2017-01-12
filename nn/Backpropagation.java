@@ -52,7 +52,11 @@ public class Backpropagation {
 		//store cost after each gradient descent iteration
 		List<Double> costs = new ArrayList<Double>();
 		
+		if(dump)
+			System.out.println("\nCosts after gradient descent iterations...");
+		
 		for(int i=0;i<epoch;i++){			
+
 			//apply back propagation
 			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, learningRate, momentum, bias, false);		
 			nodes = backProp.getNodes();
@@ -61,15 +65,10 @@ public class Backpropagation {
 			//calculate cost
 			double J = calculateCost(historicalData, nodes, weights, bias, false);
 			costs.add(J);
+			
+			//display costs for each iteration
+			System.out.println(new BigDecimal(J));
 						
-		}
-		
-		//display costs for each iteration
-		System.out.println("\ncosts after a gradient descent iteration...");
-		for(int i=0;i<costs.size();i++){
-			
-			System.out.println(new BigDecimal(costs.get(i)));
-			
 		}
 		
 		//display predictions on dataset
@@ -95,9 +94,7 @@ public class Backpropagation {
 						);			
 			
 		}		
-		
-		System.out.println("final cost: "+new BigDecimal(costs.get(costs.size()-1)));
-		
+				
 	}
 	
 	public static List<Node> createNodes(int numberOfInputs, int[] hiddenNodes, boolean dump){
@@ -560,7 +557,7 @@ public class Backpropagation {
 		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
 		//also, inputs should be normalized between [-4, +4] (x-axis of sigmoid graph)
 		//please look at the graphic of sigmoid function 
-		
+
 		for(int i=0;i<historicalData.size();i++){
 			
 			for(int j=0;j<historicalData.get(i).getAttributes().size();j++){
@@ -596,7 +593,7 @@ public class Backpropagation {
 	public static double denormalizeAttribute(double normalizedValue, double max, double min, double normalizedMax, double normalizedMin){
 		
 		//return (normalizedValue * (max - min)) + min;
-		return ((normalizedValue - normalizedMin) / (normalizedMax - normalizedMin)) * (max - min);
+		return (( (normalizedValue - normalizedMin) / (normalizedMax - normalizedMin) ) * (max - min)) + min;
 		
 	}
 	
