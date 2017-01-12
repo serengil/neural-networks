@@ -625,6 +625,7 @@ public class Backpropagation {
 			double actual = historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue();
 			
 			double cost = (predict - actual)*(predict - actual);
+			cost = cost / 2;
 			
 			J = J + cost;
 			
