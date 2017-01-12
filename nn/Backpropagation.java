@@ -31,7 +31,7 @@ public class Backpropagation {
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
 		double bias = 1, learningRate = 0.1, momentum = 0;
-		int epoch = 1000;
+		int epoch = 10000;
 		
 		//------------------------------------------------
 		
@@ -67,7 +67,8 @@ public class Backpropagation {
 			costs.add(J);
 			
 			//display costs for each iteration
-			System.out.println(new BigDecimal(J));
+			if(dump)
+				System.out.println(new BigDecimal(J));
 						
 		}
 		
@@ -353,14 +354,17 @@ public class Backpropagation {
 					
 				}
 				
-				if(true){
-				//if(j != nodes.size() -1){ //activation function will not be applied on output node in some examples we'll always apply
+				
+				/*
+				//incorrect block!
+				if(j != nodes.size() -1){ 
 					netoutput = activationFunction(netinput);
 				}
 				else{
 					netoutput = netinput * 1;
-				}
+				}*/
 				
+				netoutput = activationFunction(netinput);
 				nodes.get(j).setValue(netoutput);
 
 			} //input layer discarded checking end
@@ -400,7 +404,7 @@ public class Backpropagation {
 			double actualValue = historicalData.get(i).getAttributes().get(numberOfInputsAttributes).getValue();
 			double predictValue = outputNode.getValue();
 			
-			double smallDelta = actualValue - predictValue;
+			double smallDelta = actualValue - predictValue;	 
 			
 			nodes.get(nodes.size()-1).setSmallDelta(smallDelta);
 			
@@ -476,15 +480,18 @@ public class Backpropagation {
 					
 				}
 				
-				double d = weightToNodeDelta;
-				
+				/*
+				//incorrect block!
+				double d = weightToNodeDelta; 
 				if(toOutputNode != true){
-				//if(true){
 					d = d * weightToNodeValue * (1 - weightToNodeValue);
 				}
-				
 				double derivative = weightFromNodeValue * d;
-				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative);
+				*/
+				
+				double derivative = weightToNodeDelta * weightToNodeValue * (1 - weightToNodeValue) * weightFromNodeValue;
+				
+				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
 				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) );
 				previousDerivative = derivative * 1;
 				
