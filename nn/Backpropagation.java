@@ -479,6 +479,7 @@ public class Backpropagation {
 				double d = weightToNodeDelta;
 				
 				if(toOutputNode != true){
+				//if(true){
 					d = d * weightToNodeValue * (1 - weightToNodeValue);
 				}
 				
