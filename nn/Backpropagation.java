@@ -3,8 +3,8 @@ package com.ml.nn;
 /**
  * @author Sefik Ilkin Serengil
  * 
- * initialization: 2017-01-01
- * lastly updated: 2017-01-30
+ * initialization: 2017-01-13
+ * lastly updated: 2017-01-01
  * 
  */
 
@@ -26,7 +26,7 @@ public class Backpropagation {
 		
 		//variable definition
 		
-		int[] hiddenNodes = {4}; //a hidden layer consisting of 4 nodes. 
+		int[] hiddenNodes = {4}; //a hidden layer consisting of 3 nodes. 
 		//to create a networkconsisting of multiple hidden layers define the variable as {3, 3}. 
 		//this usage means 2 hidden layers consisting of 3 nodes for each layer
 		
@@ -644,7 +644,7 @@ public class Backpropagation {
 		double d = 0;
 		
 		if("sigmoid".equals(function)){
-			d = fx * (fx);
+			d = fx * (1 - fx);
 		}
 		else if("tanh".equals(function)){
 			d = 1 - (fx * fx);			
