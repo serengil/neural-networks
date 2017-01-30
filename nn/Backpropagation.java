@@ -3,8 +3,8 @@ package com.ml.nn;
 /**
  * @author Sefik Ilkin Serengil
  * 
- * initialization: 2017-01-13
- * lastly updated: 2017-01-01
+ * initialization: 2017-01-01
+ * lastly updated: 2017-01-30
  * 
  */
 
@@ -33,8 +33,10 @@ public class Backpropagation {
 		String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\sine.txt";
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
-		double bias = 1, learningRate = 0.01, momentum = 0;
-		int epoch = 100000;
+		double bias = 1;
+		double learningRate = 0.01; //learning rate should be between 0 and 1, mostly less than or equal to 0.2 (Alpaydin, E., 2004)
+		double momentum = 0;
+		int epoch = 10000; //the larger epoch, the better learning
 		
 		String activation = "sigmoid"; //available functions: sigmoid, tanh
 		
@@ -92,12 +94,11 @@ public class Backpropagation {
 			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, activation, bias, false);
 			
 			//display normalized prediction and actual values
-			//System.out.println(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue()+"\t"+currentNodes.get(currentNodes.size()-1).getValue());
 			
 			double min = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(0).getValue();
 			double max = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(1).getValue();
 			
-			double normalizedMin = 0, normalizedMax = 1; //default sigmoid
+			double normalizedMin = 0, normalizedMax = 0;
 			
 			//outputs normalized in following scales 
 			if("sigmoid".equals(activation)){
@@ -109,12 +110,13 @@ public class Backpropagation {
 				normalizedMax = 1;
 			}
 			
-			if(dump)
+			if(dump){
 				System.out.println(
 							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min, normalizedMax, normalizedMin) //actual
 							+"\t"
 							+denormalizeAttribute(currentNodes.get(currentNodes.size()-1).getValue(), max, min, normalizedMax, normalizedMin) //predict
-						);			
+						);	
+			}
 			
 		}		
 				
@@ -376,19 +378,15 @@ public class Backpropagation {
 				}
 				
 				netoutput = activationFunction(activation, netinput);
-				nodes.get(j).setNetInputValue(netinput);
-				nodes.get(j).setValue(netoutput);
+				nodes.get(j).setNetInputValue(netinput); //store net input value
+				nodes.get(j).setValue(netoutput); //store net output value
 
 			} //input layer discarded checking end
 			
 		}
 		
-		if(dump){
-			/*System.out.println("actual: "+instance.getAttributes().get(instance.getAttributes().size()-1).getValue()
-				+"\tpredict: "+nodes.get(nodes.size()-1).getValue());*/
-			
-			System.out.println(instance.getAttributes().get(instance.getAttributes().size()-1).getValue()+"\t"+nodes.get(nodes.size()-1).getValue());
-					
+		if(dump){			
+			System.out.println(instance.getAttributes().get(instance.getAttributes().size()-1).getValue()+"\t"+nodes.get(nodes.size()-1).getValue());	
 		}
 		
 		return nodes;
@@ -489,11 +487,10 @@ public class Backpropagation {
 					
 				}
 				
-				//double derivative = weightToNodeDelta * weightToNodeValue * (1 - weightToNodeValue) * weightFromNodeValue; //for sigmoid
-				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue, weightToNodeNetInput) * weightFromNodeValue; //supports multiple activation functions
+				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue, weightToNodeNetInput) * weightFromNodeValue; //multiple activation functions supported
 				
 				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
-				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) );
+				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) ); //momentum capability added
 				previousDerivative = derivative * 1;
 				
 			}
@@ -562,10 +559,10 @@ public class Backpropagation {
 	
 	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax, String activation){
 		
-		//min max values for all attributes are calculated in findAttributeBoundaries method
-		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
+		//min max values for all attributes are already calculated in findAttributeBoundaries method
+		//For instance, if sigmoid is picked up as activation function
+		//then outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
 		//also, inputs should be normalized between [-4, +4] (x-axis of sigmoid graph)
-		//please look at the graphic of sigmoid function 
 
 		for(int i=0;i<historicalData.size();i++){
 			
@@ -573,25 +570,25 @@ public class Backpropagation {
 				
 				double newMin = 0, newMax = 0;
 				
-				if(j == historicalData.get(i).getAttributes().size() - 1){ //output item, normalize in scale [0, 1]
+				if(j == historicalData.get(i).getAttributes().size() - 1){ //output item
 					
-					if("sigmoid".equals(activation)){
+					if("sigmoid".equals(activation)){ //normalize in scale [0, 1]
 						newMin = 0;
 						newMax = 1;
 					}
-					else if("tanh".equals(activation)){
+					else if("tanh".equals(activation)){ //normalize in scale [-1,+1]
 						newMin = -1;
 						newMax = 1;
 					}
 					
 				}
-				else{ //input variable, normalize in scale [-4,+4]
+				else{ //input variable
 					
-					if("sigmoid".equals(activation)){
+					if("sigmoid".equals(activation)){ //normalize in scale [-4,+4]
 						newMin = -4;
 						newMax = 4;
 					}
-					else if("tanh".equals(activation)){
+					else if("tanh".equals(activation)){ //normalize in scale [-2,+2]
 						newMin = -2;
 						newMax = 2;
 					}
@@ -602,7 +599,6 @@ public class Backpropagation {
 				double minItem = datasetMinMax.get(j).getAttributes().get(0).getValue();
 				double maxItem = datasetMinMax.get(j).getAttributes().get(1).getValue();
 				
-				//double normalizeValue = (value - minItem) / (maxItem - minItem); //this line normalizes in scale [0, 1]
 				double normalizeValue = ((newMax - newMin)*((value - minItem) / (maxItem - minItem))) + newMin; //this line normalizes in scale [newMin, newMax]
 				
 				historicalData.get(i).getAttributes().get(j).setValue(normalizeValue);
@@ -617,8 +613,7 @@ public class Backpropagation {
 	
 	public static double denormalizeAttribute(double normalizedValue, double max, double min, double normalizedMax, double normalizedMin){
 		
-		//return (normalizedValue * (max - min)) + min;
-		return (( (normalizedValue - normalizedMin) / (normalizedMax - normalizedMin) ) * (max - min)) + min;
+		return (( (normalizedValue - normalizedMin) / (normalizedMax - normalizedMin) ) * (max - min)) + min; //denormalized values in scale [normalizedMin, normalizedMax]
 		
 	}
 	
