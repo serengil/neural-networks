@@ -3,6 +3,9 @@ package com.ml.nn;
 /**
  * @author Sefik Ilkin Serengil
  * 
+ * initialization: 2017-01-01
+ * lastly updated: 2017-01-30
+ * 
  */
 
 import java.util.ArrayList;
@@ -23,15 +26,17 @@ public class Backpropagation {
 		
 		//variable definition
 		
-		int[] hiddenNodes = {3}; //a hidden layer consisting of 3 nodes. 
-		//to create a network consisting of multiple hidden layers define the variable as {3, 3}. 
+		int[] hiddenNodes = {4}; //a hidden layer consisting of 4 nodes. 
+		//to create a networkconsisting of multiple hidden layers define the variable as {3, 3}. 
 		//this usage means 2 hidden layers consisting of 3 nodes for each layer
 		
 		String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\sine.txt";
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
-		double bias = 1, learningRate = 0.1, momentum = 0;
-		int epoch = 10000;
+		double bias = 1, learningRate = 0.01, momentum = 0;
+		int epoch = 100000;
+		
+		String activation = "sigmoid"; //available functions: sigmoid, tanh
 		
 		//------------------------------------------------
 		
@@ -41,7 +46,7 @@ public class Backpropagation {
 		
 		//normalize inputs
 		List<HistoricalItem> attributeBoundaries = findAttributeBoundaries(historicalData);
-		historicalData = normalizeAttributes(historicalData, attributeBoundaries);
+		historicalData = normalizeAttributes(historicalData, attributeBoundaries, activation);
 		
 		//node creation
 		List<Node> nodes = createNodes(numberOfInputs, hiddenNodes, dump);
@@ -58,25 +63,33 @@ public class Backpropagation {
 		for(int i=0;i<epoch;i++){			
 
 			//apply back propagation
-			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, learningRate, momentum, bias, false);		
+			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, activation, learningRate, momentum, bias, false);		
 			nodes = backProp.getNodes();
 			weights = backProp.getWeights();
 			
 			//calculate cost
-			double J = calculateCost(historicalData, nodes, weights, bias, false);
+			double J = calculateCost(historicalData, nodes, weights, activation, bias, false);
 			costs.add(J);
 			
 			//display costs for each iteration
-			if(dump)
-				System.out.println(new BigDecimal(J));
+			if(dump && i % 10000 == 0)
+				System.out.println(i+"\t"+new BigDecimal(J));
 						
+		}
+		
+		//display final weights
+		System.out.println("\nfinal weights...");
+		for(int i=0;i<weights.size();i++){
+			
+			System.out.println("from "+weights.get(i).getFromLabel()+" to "+weights.get(i).getToLabel()+": "+weights.get(i).getValue()); 
+			
 		}
 		
 		//display predictions on dataset
 		System.out.println("\nfinal outputs...\nactual\tpredict");
 		for(int i=0;i<historicalData.size();i++){
 			
-			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, bias, false);
+			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, activation, bias, false);
 			
 			//display normalized prediction and actual values
 			//System.out.println(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue()+"\t"+currentNodes.get(currentNodes.size()-1).getValue());
@@ -84,8 +97,18 @@ public class Backpropagation {
 			double min = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(0).getValue();
 			double max = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(1).getValue();
 			
-			double normalizedMin = 0, normalizedMax = 1; //outputs normalized in scale [0, 1]. 
-			//inputs normalized in scale [-4,+4] but only output predictions will be displayed in following line
+			double normalizedMin = 0, normalizedMax = 1; //default sigmoid
+			
+			//outputs normalized in following scales 
+			if("sigmoid".equals(activation)){
+				normalizedMin = 0;
+				normalizedMax = 1;
+			}
+			else if("tanh".equals(activation)){
+				normalizedMin = -1;
+				normalizedMax = 1;
+			}
+			
 			
 			if(dump)
 				System.out.println(
@@ -106,7 +129,6 @@ public class Backpropagation {
 		List<Node> nodes = new ArrayList<Node>();
 		
 		int nodeIndex = 0;
-		
 		
 		//------------------------------------
 		//input layer
@@ -287,7 +309,7 @@ public class Backpropagation {
 		return weights;
 	}
 	
-	public static List<Node> applyForwardPropagation(HistoricalItem instance, List<Node> nodes, List<Weight> weights, double bias, boolean dump){
+	public static List<Node> applyForwardPropagation(HistoricalItem instance, List<Node> nodes, List<Weight> weights, String activation, double bias, boolean dump){
 		
 		//transfer bias unit values first		
 		for(int j=0;j<nodes.size();j++){
@@ -354,17 +376,7 @@ public class Backpropagation {
 					
 				}
 				
-				
-				/*
-				//incorrect block!
-				if(j != nodes.size() -1){ 
-					netoutput = activationFunction(netinput);
-				}
-				else{
-					netoutput = netinput * 1;
-				}*/
-				
-				netoutput = activationFunction(netinput);
+				netoutput = activationFunction(activation, netinput);
 				nodes.get(j).setValue(netoutput);
 
 			} //input layer discarded checking end
@@ -383,7 +395,7 @@ public class Backpropagation {
 		
 	}
 	
-	public static BackProp applyBackPropagation(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, double learningRate, double momentum, double bias, boolean dump){
+	public static BackProp applyBackPropagation(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, String activation, double learningRate, double momentum, double bias, boolean dump){
 		
 		//this block includes forward propagation, back propagation and stockastic gradient descent
 		
@@ -395,7 +407,7 @@ public class Backpropagation {
 		for(int i=0;i<historicalData.size();i++){
 			
 			//apply forward propagation first
-			nodes = applyForwardPropagation(historicalData.get(i), nodes, weights, bias, dump);
+			nodes = applyForwardPropagation(historicalData.get(i), nodes, weights, activation, bias, dump);
 			
 			//historical instance
 		
@@ -404,7 +416,7 @@ public class Backpropagation {
 			double actualValue = historicalData.get(i).getAttributes().get(numberOfInputsAttributes).getValue();
 			double predictValue = outputNode.getValue();
 			
-			double smallDelta = actualValue - predictValue;	 
+			double smallDelta = actualValue - predictValue;
 			
 			nodes.get(nodes.size()-1).setSmallDelta(smallDelta);
 			
@@ -458,7 +470,6 @@ public class Backpropagation {
 			for(int j=0;j<weights.size();j++){
 				
 				double weightFromNodeValue = 0, weightToNodeDelta = 0, weightToNodeValue = 0;
-				boolean toOutputNode = false;
 				
 				for(int k=0;k<nodes.size();k++){
 					
@@ -473,23 +484,12 @@ public class Backpropagation {
 						weightToNodeDelta = nodes.get(k).getSmallDelta();
 						weightToNodeValue = nodes.get(k).getValue();
 						
-						if(k == nodes.size()-1)
-							toOutputNode = true;
-						
 					}
 					
 				}
 				
-				/*
-				//incorrect block!
-				double d = weightToNodeDelta; 
-				if(toOutputNode != true){
-					d = d * weightToNodeValue * (1 - weightToNodeValue);
-				}
-				double derivative = weightFromNodeValue * d;
-				*/
-				
-				double derivative = weightToNodeDelta * weightToNodeValue * (1 - weightToNodeValue) * weightFromNodeValue;
+				//double derivative = weightToNodeDelta * weightToNodeValue * (1 - weightToNodeValue) * weightFromNodeValue; //for sigmoid
+				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue) * weightFromNodeValue; //supports multiple activation functions
 				
 				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
 				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) );
@@ -559,7 +559,7 @@ public class Backpropagation {
 		
 	}
 	
-	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax){
+	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax, String activation){
 		
 		//min max values for all attributes are calculated in findAttributeBoundaries method
 		//outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
@@ -570,15 +570,31 @@ public class Backpropagation {
 			
 			for(int j=0;j<historicalData.get(i).getAttributes().size();j++){
 				
-				double newMin, newMax;
+				double newMin = 0, newMax = 0;
 				
 				if(j == historicalData.get(i).getAttributes().size() - 1){ //output item, normalize in scale [0, 1]
-					newMin = 0;
-					newMax = 1;
+					
+					if("sigmoid".equals(activation)){
+						newMin = 0;
+						newMax = 1;
+					}
+					else if("tanh".equals(activation)){
+						newMin = -1;
+						newMax = 1;
+					}
+					
 				}
 				else{ //input variable, normalize in scale [-4,+4]
-					newMin = -4;
-					newMax = 4;
+					
+					if("sigmoid".equals(activation)){
+						newMin = -4;
+						newMax = 4;
+					}
+					else if("tanh".equals(activation)){
+						newMin = -2;
+						newMax = 2;
+					}
+					
 				}
 				
 				double value = historicalData.get(i).getAttributes().get(j).getValue();
@@ -605,21 +621,46 @@ public class Backpropagation {
 		
 	}
 	
-	public static double activationFunction(double x){
+	public static double activationFunction(String function, double x){
 		
-		double sigmoid = 1 / (1 + (Math.exp(-x)));
+		double f = 0;
 		
-		return sigmoid;
+		if("sigmoid".equals(function)){
+			f = 1 / (1 + (Math.exp(-x)));
+		}
+		else if("tanh".equals(function)){
+			f = (Math.exp(x) - Math.exp(-x))/(Math.exp(x) + Math.exp(-x));
+		}
+		else{
+			f = 0;
+		}
+		
+		return f;
 		
 	}
 	
-	public static  double calculateCost(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, double bias, boolean dump){
+	public static double derivativeOfActivation(String function, double fx){
+		
+		double d = 0;
+		
+		if("sigmoid".equals(function)){
+			d = fx * (fx);
+		}
+		else if("tanh".equals(function)){
+			d = 1 - (fx * fx);			
+		}
+		
+		return d;
+		
+	}
+	
+	public static  double calculateCost(List<HistoricalItem> historicalData, List<Node> nodes, List<Weight> weights, String activation, double bias, boolean dump){
 		
 		double J = 0;
 		
 		for(int i=0;i<historicalData.size();i++){
 			
-			nodes = applyForwardPropagation(historicalData.get(i), nodes, weights, bias, dump);
+			nodes = applyForwardPropagation(historicalData.get(i), nodes, weights, activation, bias, dump);
 			
 			double predict = nodes.get(nodes.size() - 1).getValue();
 			double actual = historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue();
