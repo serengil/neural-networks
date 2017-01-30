@@ -109,7 +109,6 @@ public class Backpropagation {
 				normalizedMax = 1;
 			}
 			
-			
 			if(dump)
 				System.out.println(
 							denormalizeAttribute(historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue(), max, min, normalizedMax, normalizedMin) //actual
@@ -377,6 +376,7 @@ public class Backpropagation {
 				}
 				
 				netoutput = activationFunction(activation, netinput);
+				nodes.get(j).setNetInputValue(netinput);
 				nodes.get(j).setValue(netoutput);
 
 			} //input layer discarded checking end
@@ -469,7 +469,7 @@ public class Backpropagation {
 			
 			for(int j=0;j<weights.size();j++){
 				
-				double weightFromNodeValue = 0, weightToNodeDelta = 0, weightToNodeValue = 0;
+				double weightFromNodeValue = 0, weightToNodeDelta = 0, weightToNodeValue = 0, weightToNodeNetInput = 0;
 				
 				for(int k=0;k<nodes.size();k++){
 					
@@ -483,13 +483,14 @@ public class Backpropagation {
 						
 						weightToNodeDelta = nodes.get(k).getSmallDelta();
 						weightToNodeValue = nodes.get(k).getValue();
+						weightToNodeNetInput = nodes.get(k).getNetInputValue();
 						
 					}
 					
 				}
 				
 				//double derivative = weightToNodeDelta * weightToNodeValue * (1 - weightToNodeValue) * weightFromNodeValue; //for sigmoid
-				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue) * weightFromNodeValue; //supports multiple activation functions
+				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue, weightToNodeNetInput) * weightFromNodeValue; //supports multiple activation functions
 				
 				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
 				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) );
@@ -631,15 +632,12 @@ public class Backpropagation {
 		else if("tanh".equals(function)){
 			f = (Math.exp(x) - Math.exp(-x))/(Math.exp(x) + Math.exp(-x));
 		}
-		else{
-			f = 0;
-		}
 		
 		return f;
 		
 	}
 	
-	public static double derivativeOfActivation(String function, double fx){
+	public static double derivativeOfActivation(String function, double fx, double x){
 		
 		double d = 0;
 		
