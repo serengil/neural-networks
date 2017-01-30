@@ -7,6 +7,7 @@ public class Node {
 	public int item;
 	public String label;
 	public String layerName;
+	public double netInputValue;
 	public double value;
 	public double smallDelta;
 	public boolean biasUnit;
@@ -59,7 +60,11 @@ public class Node {
 	public void setBiasUnit(boolean biasUnit) {
 		this.biasUnit = biasUnit;
 	}
-
-	
+	public double getNetInputValue() {
+		return netInputValue;
+	}
+	public void setNetInputValue(double netInputValue) {
+		this.netInputValue = netInputValue;
+	}
 	
 }
