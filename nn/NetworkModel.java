@@ -9,7 +9,7 @@ import com.ml.nn.entity.Weight;
 
 public class NetworkModel {
 	
-public static List<Node> createNodes(int numberOfInputs, int[] hiddenNodes, boolean dump){
+	public static List<Node> createNodes(int numberOfInputs, int[] hiddenNodes, boolean dump){
 		
 		if(dump)
 			System.out.println("network model...");
@@ -130,60 +130,62 @@ public static List<Node> createNodes(int numberOfInputs, int[] hiddenNodes, bool
 
 	public static List<Weight> createWeights(List<Node> nodes, int numberOfInputs, int[] hiddenNodes, boolean dump){
 	
-	if(dump)
-		System.out.println("connection creation with random weights...");
-	
-	List<Weight> weights = new ArrayList<Weight>();
-	
-	int totalLayers = 1 + hiddenNodes.length + 1; //input layer + hidden layers + output layer
-	
-	double randomValue = 0;
-	
-	int weightIndex = 0;
-	
-	for(int i=0;i<totalLayers - 1;i++){
+		if(dump)
+			System.out.println("connection creation with random weights...");
 		
-		for(int j=0;j<nodes.size();j++){
+		List<Weight> weights = new ArrayList<Weight>();
+		
+		int totalLayers = 1 + hiddenNodes.length + 1; //input layer + hidden layers + output layer
+		
+		double randomValue = 0;
+		
+		int weightIndex = 0;
+		
+		for(int i=0;i<totalLayers - 1;i++){
 			
-			if(nodes.get(j).getLevel() == i){
+			for(int j=0;j<nodes.size();j++){
 				
-				//i level item: nodes.get(j).getLabel()
-				
-				for(int k=0;k<nodes.size();k++){
+				if(nodes.get(j).getLevel() == i){
 					
-					if(nodes.get(k).getLevel() == i+1){
+					//i level item: nodes.get(j).getLabel()
+					
+					for(int k=0;k<nodes.size();k++){
 						
-						if(nodes.get(k).isBiasUnit() == false){
+						if(nodes.get(k).getLevel() == i+1){
 							
-							//there is a connection from nodes.get(j).getLabel() to nodes.get(k).getLabel()
+							if(nodes.get(k).isBiasUnit() == false){
+								
+								//there is a connection from nodes.get(j).getLabel() to nodes.get(k).getLabel()
+								
+								//randomly initialize weights, then these weights will be updated by backpropagation algoritm
+								//initialize all weights between [-epsilon, +epsilon]. 
+								//the following paper gives opinion about initializing. https://web.stanford.edu/class/ee373b/nninitialization.pdf
+								
+								Random r = new Random();
+								double rangeMin = 0, rangeMax = 1;
+								double INIT_EPSILON = (double) Math.sqrt(6) / Math.sqrt(numberOfInputs + 1);
+								double rand = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
+								randomValue = rand * (2 * INIT_EPSILON) - INIT_EPSILON;
+															
+								//------------------------------------------
+								
+								Weight weight = new Weight();
+								weight.setWeightIndex(weightIndex);
+								weight.setFromIndex(nodes.get(j).getIndex());
+								weight.setFromLabel(nodes.get(j).getLabel());
+								weight.setToIndex(nodes.get(k).getIndex());
+								weight.setToLabel(nodes.get(k).getLabel());		
+								weight.setValue(randomValue); //initialize each weight between [-epsilon, +epsilon]
+								weights.add(weight);
+								
+								weightIndex++;
+								
+								if(dump)
+									System.out.println("from "+nodes.get(j).getLabel()+" to "+nodes.get(k).getLabel()+": "+randomValue);
+								
+							}	
 							
-							//randomly initialize weights, then these weights will be updated by backpropagation algoritm
-							//initialize all weights between [-epsilon, +epsilon]. 
-							//the following paper gives opinion about initializing. https://web.stanford.edu/class/ee373b/nninitialization.pdf
-							
-							Random r = new Random();
-							double rangeMin = 0, rangeMax = 1;
-							double INIT_EPSILON = (double) Math.sqrt(6) / Math.sqrt(numberOfInputs + 1);
-							double rand = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
-							randomValue = rand * (2 * INIT_EPSILON) - INIT_EPSILON;
-														
-							//------------------------------------------
-							
-							Weight weight = new Weight();
-							weight.setWeightIndex(weightIndex);
-							weight.setFromIndex(nodes.get(j).getIndex());
-							weight.setFromLabel(nodes.get(j).getLabel());
-							weight.setToIndex(nodes.get(k).getIndex());
-							weight.setToLabel(nodes.get(k).getLabel());		
-							weight.setValue(randomValue); //initialize each weight between [-epsilon, +epsilon]
-							weights.add(weight);
-							
-							weightIndex++;
-							
-							if(dump)
-								System.out.println("from "+nodes.get(j).getLabel()+" to "+nodes.get(k).getLabel()+": "+randomValue);
-							
-						}	
+						}
 						
 					}
 					
@@ -193,9 +195,7 @@ public static List<Node> createNodes(int numberOfInputs, int[] hiddenNodes, bool
 			
 		}
 		
+		return weights;
 	}
-	
-	return weights;
-}
 
 }
