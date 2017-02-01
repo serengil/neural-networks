@@ -23,7 +23,7 @@ public class Backpropagation {
 	public static boolean dump = true;
 	
 	public static void main(String[] args) {
-		
+				
 		//variable definition
 		
 		int[] hiddenNodes = {4}; //a hidden layer consisting of 3 nodes. 
@@ -36,9 +36,11 @@ public class Backpropagation {
 		double bias = 1;
 		double learningRate = 0.01; //learning rate should be between 0 and 1, mostly less than or equal to 0.2 (Alpaydin, E., 2004)
 		double momentum = 0;
-		int epoch = 10000; //the larger epoch, the better learning
+		int epoch = 100000; //the larger epoch, the better learning
 		
-		String activation = "sigmoid"; //available functions: sigmoid, tanh
+		String activation = "sigmoid"; //available functions: sigmoid, tanh, softsign, gaussian
+		
+		System.out.println("activation function: "+activation);
 		
 		//------------------------------------------------
 		
@@ -62,7 +64,7 @@ public class Backpropagation {
 		if(dump)
 			System.out.println("\nCosts after gradient descent iterations...");
 		
-		for(int i=0;i<epoch;i++){			
+		for(int i=0;i<=epoch;i++){			
 
 			//apply back propagation
 			BackProp backProp = applyBackPropagation(historicalData, nodes, weights, activation, learningRate, momentum, bias, false);		
@@ -74,8 +76,9 @@ public class Backpropagation {
 			costs.add(J);
 			
 			//display costs for each iteration
-			if(dump && i % 10000 == 0)
+			if(dump && i % 10000 == 0){
 				System.out.println(i+"\t"+new BigDecimal(J));
+			}
 						
 		}
 		
@@ -92,23 +95,12 @@ public class Backpropagation {
 		for(int i=0;i<historicalData.size();i++){
 			
 			List<Node> currentNodes = applyForwardPropagation(historicalData.get(i), nodes, weights, activation, bias, false);
-			
-			//display normalized prediction and actual values
-			
+				
 			double min = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(0).getValue();
 			double max = attributeBoundaries.get(attributeBoundaries.size()-1).getAttributes().get(1).getValue();
 			
-			double normalizedMin = 0, normalizedMax = 0;
-			
-			//outputs normalized in following scales 
-			if("sigmoid".equals(activation)){
-				normalizedMin = 0;
-				normalizedMax = 1;
-			}
-			else if("tanh".equals(activation)){
-				normalizedMin = -1;
-				normalizedMax = 1;
-			}
+			double normalizedMin = Activation.retrieveRange(activation, "min", "output");
+			double normalizedMax = Activation.retrieveRange(activation, "max", "output");
 			
 			if(dump){
 				System.out.println(
@@ -273,12 +265,13 @@ public class Backpropagation {
 								//randomly initialize weights, then these weights will be updated by backpropagation algoritm
 								//initialize all weights between [-epsilon, +epsilon]. 
 								//the following paper gives opinion about initializing. https://web.stanford.edu/class/ee373b/nninitialization.pdf
+								
 								Random r = new Random();
 								double rangeMin = 0, rangeMax = 1;
 								double INIT_EPSILON = (double) Math.sqrt(6) / Math.sqrt(numberOfInputs + 1);
 								double rand = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
 								randomValue = rand * (2 * INIT_EPSILON) - INIT_EPSILON;
-								
+															
 								//------------------------------------------
 								
 								Weight weight = new Weight();
@@ -377,7 +370,7 @@ public class Backpropagation {
 					
 				}
 				
-				netoutput = activationFunction(activation, netinput);
+				netoutput = Activation.activationFunction(activation, netinput);				
 				nodes.get(j).setNetInputValue(netinput); //store net input value
 				nodes.get(j).setValue(netoutput); //store net output value
 
@@ -487,7 +480,9 @@ public class Backpropagation {
 					
 				}
 				
-				double derivative = weightToNodeDelta * derivativeOfActivation(activation, weightToNodeValue, weightToNodeNetInput) * weightFromNodeValue; //multiple activation functions supported
+				double derivative = weightToNodeDelta 
+						* Activation.derivativeOfActivation(activation, weightToNodeValue, weightToNodeNetInput) 
+						* weightFromNodeValue;
 				
 				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
 				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) ); //momentum capability added
@@ -523,17 +518,11 @@ public class Backpropagation {
 				
 				double output = historicalData.get(i).getAttributes().get(historicalData.get(i).getAttributes().size()-1).getValue();
 				
-				if(output < minItem){
-					
+				if(output < minItem)
 					minItem = output;
-					
-				}
 				
-				if(output > maxItem){
-					
+				if(output > maxItem)
 					maxItem = output;
-					
-				}
 				
 			}
 			
@@ -558,11 +547,6 @@ public class Backpropagation {
 	}
 	
 	public static List<HistoricalItem> normalizeAttributes(List<HistoricalItem> historicalData, List<HistoricalItem> datasetMinMax, String activation){
-		
-		//min max values for all attributes are already calculated in findAttributeBoundaries method
-		//For instance, if sigmoid is picked up as activation function
-		//then outputs must be normalized between [0, 1] because sigmoid function changes in this scale (y-axis of sigmoid graph)
-		//also, inputs should be normalized between [-4, +4] (x-axis of sigmoid graph)
 
 		for(int i=0;i<historicalData.size();i++){
 			
@@ -572,26 +556,14 @@ public class Backpropagation {
 				
 				if(j == historicalData.get(i).getAttributes().size() - 1){ //output item
 					
-					if("sigmoid".equals(activation)){ //normalize in scale [0, 1]
-						newMin = 0;
-						newMax = 1;
-					}
-					else if("tanh".equals(activation)){ //normalize in scale [-1,+1]
-						newMin = -1;
-						newMax = 1;
-					}
+					newMin = Activation.retrieveRange(activation, "min", "output");
+					newMax = Activation.retrieveRange(activation, "max", "output");
 					
 				}
 				else{ //input variable
 					
-					if("sigmoid".equals(activation)){ //normalize in scale [-4,+4]
-						newMin = -4;
-						newMax = 4;
-					}
-					else if("tanh".equals(activation)){ //normalize in scale [-2,+2]
-						newMin = -2;
-						newMax = 2;
-					}
+					newMin = Activation.retrieveRange(activation, "min", "input");
+					newMin = Activation.retrieveRange(activation, "max", "input");
 					
 				}
 				
@@ -614,36 +586,6 @@ public class Backpropagation {
 	public static double denormalizeAttribute(double normalizedValue, double max, double min, double normalizedMax, double normalizedMin){
 		
 		return (( (normalizedValue - normalizedMin) / (normalizedMax - normalizedMin) ) * (max - min)) + min; //denormalized values in scale [normalizedMin, normalizedMax]
-		
-	}
-	
-	public static double activationFunction(String function, double x){
-		
-		double f = 0;
-		
-		if("sigmoid".equals(function)){
-			f = 1 / (1 + (Math.exp(-x)));
-		}
-		else if("tanh".equals(function)){
-			f = (Math.exp(x) - Math.exp(-x))/(Math.exp(x) + Math.exp(-x));
-		}
-		
-		return f;
-		
-	}
-	
-	public static double derivativeOfActivation(String function, double fx, double x){
-		
-		double d = 0;
-		
-		if("sigmoid".equals(function)){
-			d = fx * (1 - fx);
-		}
-		else if("tanh".equals(function)){
-			d = 1 - (fx * fx);			
-		}
-		
-		return d;
 		
 	}
 	
