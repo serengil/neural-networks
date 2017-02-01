@@ -26,7 +26,7 @@ public class Backpropagation {
 				
 		//variable definition
 		
-		int[] hiddenNodes = {4}; //a hidden layer consisting of 3 nodes. 
+		int[] hiddenNodes = {4}; //a hidden layer consisting of 4 nodes. 
 		//to create a networkconsisting of multiple hidden layers define the variable as {3, 3}. 
 		//this usage means 2 hidden layers consisting of 3 nodes for each layer
 		
