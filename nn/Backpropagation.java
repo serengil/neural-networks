@@ -35,7 +35,7 @@ public class Backpropagation {
 		//String historicalDataPath = System.getProperty("user.dir")+"\\dataset\\xor.txt";
 		
 		double learningRate = 0.01; //learning rate should be between 0 and 1, mostly less than or equal to 0.2 (Alpaydin, E., 2004)
-		double momentum = 0;
+		double momentum = 0; //generally taken between 0.5 and 1.0 (Alpaydin, E., 2004)
 		int epoch = 3000; //the larger epoch, the better learning
 		
 		String activation = "sigmoid"; //available functions: sigmoid, tanh, softsign, gaussian
