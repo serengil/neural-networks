@@ -191,7 +191,11 @@ public class NetworkLearning {
 						* weightFromNodeValue;
 				
 				//weights.get(j).setValue(weights.get(j).getValue() + learningRate * derivative); //without momentum
-				weights.get(j).setValue(weights.get(j).getValue() + learningRate * ( derivative + momentum * previousDerivative) ); //momentum capability added
+				weights.get(j).setValue(
+						weights.get(j).getValue() 
+						+ learningRate * derivative 
+						+ momentum * previousDerivative 
+					); //momentum capability added
 				previousDerivative = derivative * 1;
 				
 			}
