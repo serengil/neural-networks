@@ -4,7 +4,7 @@ package com.ml.nn;
  * @author Sefik Ilkin Serengil
  * 
  * initialization: 2017-01-01
- * lastly updated: 2017-02-01
+ * lastly updated: 2017-02-23
  * 
  */
 
@@ -78,6 +78,11 @@ public class Backpropagation {
 			//display costs for each iteration
 			if(dump && i % 25 == 0){
 				System.out.println(i+"\t"+new BigDecimal(J));
+				
+				/*
+				//apply adaptive learning. increase learning rate periodically.
+				learningRate = learningRate * 2;
+				*/
 			}
 						
 		}
