@@ -37,6 +37,7 @@ public class Backpropagation {
 		double learningRate = 0.01; //learning rate should be between 0 and 1, mostly less than or equal to 0.2 (Alpaydin, E., 2004)
 		double momentum = 0; //generally taken between 0.5 and 1.0 (Alpaydin, E., 2004)
 		int epoch = 3000; //the larger epoch, the better learning
+		boolean applyAdaptiveLearning = true;
 		
 		String activation = "sigmoid"; //available functions: sigmoid, tanh, softsign, gaussian
 		
@@ -86,19 +87,23 @@ public class Backpropagation {
 			
 			//applying adaptive learning rate
 			
-			if(J < previousCost){
+			if(applyAdaptiveLearning){
 				
-				learningRate = learningRate + 0.05;
-				
-			}
-			else{
+				if(J < previousCost){
 					
-				learningRate = learningRate - 0.01*learningRate;
+					learningRate = learningRate + 0.05;
+					
+				}
+				else{
+					
+					learningRate = learningRate - 0.01*learningRate;
 								
-			}
+				}
 			
-			previousCost = J * 1;
-						
+				previousCost = J * 1;
+				
+			}
+					
 		}
 		
 		//display final weights
