@@ -4,7 +4,7 @@ package com.ml.nn;
  * @author Sefik Ilkin Serengil
  * 
  * initialization: 2017-01-01
- * lastly updated: 2017-02-23
+ * lastly updated: 2017-03-02
  * 
  */
 
@@ -64,6 +64,8 @@ public class Backpropagation {
 		if(dump)
 			System.out.println("\nCosts after gradient descent iterations...");
 		
+		double previousCost = 0;
+		
 		for(int i=0;i<=epoch;i++){			
 
 			//apply back propagation
@@ -77,13 +79,25 @@ public class Backpropagation {
 			
 			//display costs for each iteration
 			if(dump && i % 25 == 0){
+				
 				System.out.println(i+"\t"+new BigDecimal(J));
 				
-				/*
-				//apply adaptive learning. increase learning rate periodically.
-				learningRate = learningRate * 2;
-				*/
 			}
+			
+			//applying adaptive learning rate
+			
+			if(J < previousCost){
+				
+				learningRate = learningRate + 0.05;
+				
+			}
+			else{
+					
+				learningRate = learningRate - 0.01*learningRate;
+								
+			}
+			
+			previousCost = J * 1;
 						
 		}
 		
