@@ -6,7 +6,6 @@ Basically, a neural network system consists of nodes and weights. Nodes and weig
 
 The most optimum weight values should be picked up to have best neural network model. In order to pick up optimum weights; forward propagation, backpropagation and stockastic gradient descent algorithms are applied respectively. Firsyly, forward propagation algorithm multiplies input and weights, and network output is calculated. Secondly, back propagation algorithm is applied to calculate node errors based on assigned weigts (initially weights are randomly assigned). Thirdly, stockastic gradient descent is applied to update weights. Finally, these process (forward prop, back prop, grad desc) are applied again and again. Thus, optimum weights could be picked up and error is minimized. Cost variable is dumped in main program to monitor error change in each gradient descent iteration
 
-=====
 Usage
 =====
 
@@ -16,7 +15,6 @@ You could use your own dataset and run backpropagation algorithm. Basically, eac
 
 Also, you could change some variables in main program such as hidden nodes, learning rate, epoch.
 
-=======
 License
 =======
 
