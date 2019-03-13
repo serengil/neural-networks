@@ -20,4 +20,4 @@ Also, you could change some variables in main program such as hidden nodes, lear
 License
 =======
 
-Chefboost is licensed under the MIT License - see [LICENSE](https://github.com/serengil/neural-networks/blob/master/LICENSE) for more details.
+This repository is licensed under the MIT License - see [LICENSE](https://github.com/serengil/neural-networks/blob/master/LICENSE) for more details.
