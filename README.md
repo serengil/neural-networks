@@ -1,4 +1,4 @@
-# neural-networks
+# Neural Networks for Machine Learning in Java
 
 This project provides neural networks learning based on back propagation algorithm. 
 
